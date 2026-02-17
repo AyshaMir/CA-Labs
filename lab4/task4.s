@@ -1,60 +1,70 @@
-.data
-str: .asciiz "HELLO"
-
 .text
 .globl main
 
-# -----------------
-# MAIN
-# -----------------
+# void reverse(char *str, int left, int right) {
+#     if (left >= right)
+#         return;
+
+#     swap(str[left], str[right]);
+#     reverse(str, left + 1, right - 1);
+# }
+
 main:
-    la a0, str          # a0 = address of string
-    li a1, 0            # left = 0
-    li a2, 4            # right = length-1 (HELLO = 5 chars)
+    li x10, 0x100      # base address
+    li x5, 'H'
+    sb x5, 0(x10)
+    li x5, 'E'
+    sb x5, 4(x10)
+    li x5, 'L'
+    sb x5, 8(x10)
+    li x5, 'L'
+    sb x5, 12(x10)
+    li x5, 'O'
+    sb x5, 16(x10)
 
-    jal ra, reverse
+    li x11, 0          # left index
+    li x12, 4          # right index (length-1)
 
-    # print reversed string
-    la a0, str
-    li a7, 4
+    jal x1, reverse    # call recursive function
+
+    li x17, 10         # exit
     ecall
 
-    li a7, 10
-    ecall
-
-
-# -----------------
-# reverse(str, left, right)
-# a0 = str
-# a1 = left
-# a2 = right
-# -----------------
+# reverse(x10=base, x11=left, x12=right)
 reverse:
-    addi sp, sp, -16
-    sw ra, 12(sp)
-    sw a1, 8(sp)
-    sw a2, 4(sp)
 
-    bge a1, a2, rev_done
+    # Base case: if left >= right return
+    bge x11, x12, done
+    #stack
+    addi sp, sp, -12
+    sw x1, 8(sp)       # save return address
+    sw x11, 4(sp)      # save left
+    sw x12, 0(sp)      # save right
+    
+    #addres str[left] and str[right]
+    slli x13, x11, 2 # x13 = left*4
+    add x5, x10, x13 # x5 = &str[left]
+    lb x6, 0(x5)     # x6 = str[left]   
 
-    # address of str[left]
-    add t0, a0, a1
-    lb t1, 0(t0)
+    #address of str[right]
+    slli x14, x12, 2 # x14 = right*4
+    add x7, x10, x14 # x7 = &str[right]
+    lb x8, 0(x7)     # x8 = str[right]
 
-    # address of str[right]
-    add t2, a0, a2
-    lb t3, 0(t2)
+    # Swap
+    sb x8, 0(x5)
+    sb x6, 0(x7)
 
-    # swap
-    sb t3, 0(t0)
-    sb t1, 0(t2)
+    #recursive call
+    addi x11, x11, 1
+    addi x12, x12, -1
 
-    addi a1, a1, 1
-    addi a2, a2, -1
+    jal x1, reverse
 
-    jal ra, reverse
+    lw x1, 8(sp)
+    lw x11, 4(sp)
+    lw x12, 0(sp)
+    addi sp, sp, 12
 
-rev_done:
-    lw ra, 12(sp)
-    addi sp, sp, 16
-    jr ra
+done:
+    jr x1
