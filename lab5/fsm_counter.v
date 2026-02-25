@@ -1,83 +1,65 @@
+`timescale 1ns / 1ps
 module fsm_counter(
     input clk,
-    input resett,
-    input clk_pulse,          // slow pulse from clock divider
-    input [15:0] sw,          // 16 FPGA switches
-    output reg [3:0] display_value,
-    output reg busy
+    input rst,
+    input [15:0] sw_in,
+    output reg [15:0] led_state
 );
-    //state Encoding
-    localparam IDLE  = 2'b00;
-    localparam WAIT  = 2'b01;
-    localparam COUNT = 2'b10;
 
-    reg [1:0] state;
-    reg [3:0] counter;
-    
-    //chooses which switch to be taken into acc when more thanone on 
-    reg [3:0] encoded_value;
-    reg valid;
-    integer i;
+    localparam WAIT  = 1'b0;
+    localparam COUNT = 1'b1;
+
+    reg state, next_state;
+    reg enable;
+    reg load_counter;
+    reg [15:0] latched_value;
+    wire [15:0] count_val;
+
+    countdown timer(
+        .clk(clk),
+        .rst(rst),
+        .enable(enable),
+        .load(load_counter),
+        .load_value(latched_value),
+        .count_out(count_val)
+    );
 
     always @(*) begin
-        encoded_value = 0;
-        valid = 0;
-
-        for (i = 15; i >= 0; i = i - 1) begin
-            if (sw[i]) begin
-                encoded_value = i[3:0];   // highest switch index
-                valid = 1;
-            end
-        end
+        case(state)
+            WAIT:
+                next_state = (sw_in != 0) ? COUNT : WAIT;
+            COUNT:
+                next_state = (count_val == 0) ? WAIT : COUNT;
+            default:
+                next_state = WAIT;
+        endcase
     end
 
-    // FSM + Counter Logic
-    always @(posedge clk or posedge resett) begin
-        if (resett) begin
-            state <= IDLE;
-            counter <= 0;
-            display_value <= 0;
-            busy <= 0;
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            state <= WAIT;
+            enable <= 0;
+            load_counter <= 0;
+            latched_value <= 0;
+            led_state <= 0;
         end
         else begin
-            case (state)
-                // IDLE STATE
-                IDLE: begin
-                    busy <= 0;
+            state <= next_state;
 
-                    if (valid) begin
-                        counter <= encoded_value;
-                        display_value <= encoded_value;
-                        busy <= 1;
-                        state <= WAIT;
-                    end
-                end
+            if (state == WAIT && next_state == COUNT) begin
+                latched_value <= sw_in;
+                load_counter <= 1;
+                enable <= 1;
+            end
+            else begin
+                load_counter <= 0;
+                enable <= (next_state == COUNT);
+            end
 
-                // WAIT STATE
-                // Wait for first pulse
-                WAIT: begin
-                    busy <= 1;
-                    if (clk_pulse)
-                        state <= COUNT;
-                end
-
-                // COUNT STATE
-                COUNT: begin
-                    busy <= 1;
-
-                    if (clk_pulse) begin
-                        if (counter > 0) begin
-                            counter <= counter - 1;
-                            display_value <= counter - 1;
-                        end
-                        else begin
-                            state <= IDLE;
-                            busy <= 0;
-                        end
-                    end
-                end
-
-            endcase
+            if (state == WAIT)
+                led_state <= sw_in;
+            else
+                led_state <= count_val;
         end
     end
 

@@ -1,27 +1,24 @@
+`timescale 1ns / 1ps
 module debouncer(
     input clk,
     input pbin,
     output reg pbout
 );
 
-    reg [19:0] counter = 0;
-    reg sync_0 = 0;
-    reg sync_1 = 0;
+    reg [15:0] counter = 0;
 
-    always @(posedge clk) begin
-        sync_0 <= pbin;
-        sync_1 <= sync_0;
+    initial begin
+        pbout = 0;     // initialize output
     end
 
     always @(posedge clk) begin
-        if (pbout == sync_1)
+        if (pbin == pbout) begin
             counter <= 0;
+        end
         else begin
             counter <= counter + 1;
-            if (counter == 5) begin
-                pbout <= sync_1;
-                counter <= 0;
-            end
+            if (counter == 16'hFFFF)
+                pbout <= pbin;
         end
     end
 

@@ -1,10 +1,10 @@
-module seven_segment(
+module seven_seg(
     input [3:0] digit,
     output reg [6:0] seg
 );
 
     always @(*) begin
-        case (digit)
+        case(digit)
             4'd0: seg = 7'b1000000;
             4'd1: seg = 7'b1111001;
             4'd2: seg = 7'b0100100;
