@@ -87,7 +87,5 @@ begin
     rs1 = 8;
     #10;
     $finish;
-
 end
-
 endmodule
