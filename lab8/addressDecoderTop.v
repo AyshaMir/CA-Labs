@@ -14,19 +14,15 @@ module addressDecoderTop(
 wire DataMemSelect;
 wire LEDSelect;
 wire SwitchSelect;
-
 wire [31:0] mem_read;
 wire [31:0] led_read;
 wire [31:0] switch_read;
-
 adressdecoder decoder(
     .address(address),
     .DataMemSelect(DataMemSelect),
     .LEDSelect(LEDSelect),
     .SwitchSelect(SwitchSelect)
 );
-
-
 datamemory dataMem(
     .clk(clk),
     .MemWrite(writeEnable & DataMemSelect),
@@ -34,7 +30,6 @@ datamemory dataMem(
     .write_data(writeData),
     .read_data(mem_read)
 );
-
 leds ledmod(
     .clk(clk),
     .rst(rst),
@@ -43,20 +38,18 @@ leds ledmod(
     .readEnable(readEnable & LEDSelect),
     .memAddress(address[29:0]),
     .readData(led_read),
-    .leds(leds)
+    .led_out(leds)
 );
-
 switches switchmod(
     .clk(clk),
     .rst(rst),
-    .btns(16'b0),
     .writeData(32'b0),
     .writeEnable(1'b0),
+    .readEnable(readEnable & SwitchSelect),
     .memAddress(address[29:0]),
-    .switches(switches),
-    .readData(switch_read)
-);
-
+    .sw(switches),     
+    .readData(switch_read));
+    
 assign readData =
        DataMemSelect ? mem_read :
        LEDSelect     ? led_read :
