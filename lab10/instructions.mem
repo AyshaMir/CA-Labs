@@ -1,164 +1,297 @@
-// FSM Lab 10 - Instruction Memory Initialization File
-// Format: one byte per line, little-endian, 256 bytes total
-// Usage: $readmemh("instructions.mem", memory);
-//
-// PC 0x00 — addi x4, x0, 256 — 0x10000213
+
+// PC 0x00: addi x4, x0, 256       (li x4, LED=256)
 13
 02
 00
 10
-// PC 0x04 — addi x5, x0, 512 — 0x20000293
+// PC 0x04: addi x5, x0, 512       (li x5, SW=512)
 93
 02
 00
 20
-// PC 0x08 — addi x6, x0, 124 — 0x07C00313
+// PC 0x08: addi x6, x0, 124       (li x6, RST=124)
 13
 03
 C0
 07
-// PC 0x0C — lw x7, 0(x5) — 0x0002A383
+// PC 0x0C: sw x0, 0(x4)           (clear LEDs)
+23
+20
+02
+00
+// PC 0x10: lw x7, 0(x5)           idle_state
 83
 A3
 02
 00
-// PC 0x10 — beq x7, x0, -4 — 0xFE038EE3
+// PC 0x14: beq x7, x0, -4         (loop idle)
 E3
 8E
 03
 FE
-// PC 0x14 — add x10, x7, x0 — 0x00038533
+// PC 0x18: add x10, x7, x0
 33
 85
 03
 00
-// PC 0x18 — jal x1, +20 — 0x014000EF
+// PC 0x1C: jal x1, +8             (call countdown)
 EF
 00
-40
-01
-// PC 0x1C — jal x0, -16 — 0xFF9FF06F
+80
+00
+// PC 0x20: jal x0, -16            (j idle_state)
 6F
 F0
-9F
+1F
 FF
-// PC 0x20 — addi x2, x2, -16 — 0xFF010113
+// PC 0x24: addi x2, x2, -16       countdown
 13
 01
 01
 FF
-// PC 0x24 — sw x1, 12(x2) — 0x00112623
+// PC 0x28: sw x1, 12(x2)
 23
 26
 11
 00
-// PC 0x28 — sw x8, 8(x2) — 0x00812423
+// PC 0x2C: sw x8, 8(x2)
 23
 24
 81
 00
-// PC 0x2C — sw x9, 4(x2) — 0x00912223
+// PC 0x30: sw x9, 4(x2)
 23
 22
 91
 00
-// PC 0x30 — sw x18, 0(x2) — 0x01212023
+// PC 0x34: sw x18, 0(x2)
 23
 20
 21
 01
-// PC 0x34 — add x8, x10, x0 — 0x00050433
+// PC 0x38: add x8, x10, x0
 33
 04
 05
 00
-// PC 0x38 — lw x9, 0(x6) — 0x00032483
+// PC 0x3C: lw x9, 0(x6)           countdown_loop
 83
 24
 03
 00
-// PC 0x3C — bne x9, x0, +40 — 0x02049463
+// PC 0x40: bne x9, x0, +24        (-> reset)
 63
-44
+9C
 04
-02
-// PC 0x40 — sw x8, 0(x4) — 0x00822023
+00
+// PC 0x44: sw x8, 0(x4)
 23
 20
 82
 00
-// PC 0x44 — addi x8, x8, -1 — 0xFFF40413
+// PC 0x48: addi x8, x8, -1
 13
 04
 F4
 FF
-// PC 0x48 — blt x8, x0, +40 — 0x02044463
+// PC 0x4C: blt x8, x0, +16        (-> done)
 63
-44
+48
 04
-02
-// PC 0x4C — lui x18, 2441 — 0x00989937
-37
-99
-98
 00
-// PC 0x50 — addi x18, x18, 1664 — 0x68090913
-13
-09
-09
-68
-// PC 0x54 — addi x18, x18, -1 — 0xFFF90913
-13
-09
-F9
-FF
-// PC 0x58 — bne x18, x0, -4 — 0xFE091EE3
-E3
-1E
-09
-FE
-// PC 0x5C — jal x0, -36 — 0xFE5FF06F
+// PC 0x50: jal x1, +36            (call delay_1s)
+EF
+00
+40
+02
+// PC 0x54: jal x0, -24            (j countdown_loop)
 6F
 F0
-5F
+9F
 FE
-// PC 0x60 — sw x0, 0(x4) — 0x00022023
+// PC 0x58: sw x0, 0(x4)           countdown_reset
 23
 20
 02
 00
-// PC 0x64 — jal x0, +16 — 0x0100006F
-6F
-00
-00
-01
-// PC 0x68 — lw x1, 12(x2) — 0x00C12083
+// PC 0x5C: lw x1, 12(x2)          countdown_done
 83
 20
 C1
 00
-// PC 0x6C — lw x8, 8(x2) — 0x00812403
+// PC 0x60: lw x8, 8(x2)
 03
 24
 81
 00
-// PC 0x70 — lw x9, 4(x2) — 0x00412483
+// PC 0x64: lw x9, 4(x2)
 83
 24
 41
 00
-// PC 0x74 — lw x18, 0(x2) — 0x00012903
+// PC 0x68: lw x18, 0(x2)
 03
 29
 01
 00
-// PC 0x78 — addi x2, x2, 16 — 0x01010113
+// PC 0x6C: addi x2, x2, 16
 13
 01
 01
 01
-// PC 0x7C — jalr x0, 0(x1) — 0x00008067
+// PC 0x70: jalr x0, 0(x1)
 67
 80
+00
+00
+// PC 0x74: addi x2, x2, -8        delay_1s
+13
+01
+81
+FF
+// PC 0x78: sw x1, 4(x2)
+23
+22
+11
+00
+// PC 0x7C: sw x18, 0(x2)
+23
+20
+21
+01
+// PC 0x80: lui x18, 2441
+37
+99
+98
+00
+// PC 0x84: addi x18, x18, 1664    (=10000000 total)
+13
+09
+09
+68
+// PC 0x88: addi x18, x18, -1      delay_loop
+13
+09
+F9
+FF
+// PC 0x8C: bne x18, x0, -4        (loop delay)
+E3
+1E
+09
+FE
+// PC 0x90: lw x1, 4(x2)
+83
+20
+41
+00
+// PC 0x94: lw x18, 0(x2)
+03
+29
+01
+00
+// PC 0x98: addi x2, x2, 8
+13
+01
+81
+00
+// PC 0x9C: jalr x0, 0(x1)
+67
+80
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
+00
 00
 00
