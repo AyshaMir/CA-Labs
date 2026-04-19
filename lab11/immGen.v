@@ -3,9 +3,7 @@ module immGen(
     input wire [31:0] instruction,
     output reg [31:0] Imm
 );
-
 wire [6:0] opcode = instruction[6:0];
-
 always @(*) begin
     case (opcode)
         7'b0010011,   // ADDI
