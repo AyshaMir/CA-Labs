@@ -41,14 +41,14 @@ module TopLevelProcessor(
     wire [31:0] WriteData;
 
     // INSTRUCTION FETCH
-    ProgramCounter pc_reg (
+    programCounter pc_reg (
         .clk(clk),
         .rst(rst),
         .PC_Next(PC_Next),
         .PC(PC)
     );
 
-    InstructionMemory imem (
+    instructionMemory imem (
         .instAddress(PC),
         .instruction(instruction)
     );

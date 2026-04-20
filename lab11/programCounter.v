@@ -1,4 +1,4 @@
-module ProgramCounter(
+module programCounter(
     input clk,
     input rst,
     input [31:0] PC_Next,
